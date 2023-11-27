@@ -10,6 +10,7 @@ public class TravelService {
 
     // do not change type
     private final List<CityInfo> cities = new ArrayList<>();
+    private final int earthRadius = 6372795;
 
     /**
      * Append city info.
@@ -18,7 +19,14 @@ public class TravelService {
      * @throws IllegalArgumentException if city already exists
      */
     public void add(CityInfo cityInfo) {
-        // do something
+        boolean cityExists = cities.stream()
+                .anyMatch(city -> city.getName().equals(cityInfo.getName()));
+        if (cityExists){
+            throw new IllegalArgumentException("city" + cityInfo.getName() + "already exists in list");
+        }
+        else {
+            cities.add(cityInfo);
+        }
     }
 
     /**
@@ -28,14 +36,22 @@ public class TravelService {
      * @throws IllegalArgumentException if city doesn't exist
      */
     public void remove(String cityName) {
-        // do something
+        boolean cityExists = cities.stream()
+                .anyMatch(city -> city.getName().equals(cityName));
+        if (cityExists){
+            cities.removeIf(city -> city.getName().equals(cityName));
+        }
+        else {
+            throw new IllegalArgumentException("city" + cityName + "not exists in list");
+        }
+
     }
 
     /**
      * Get cities names.
      */
     public List<String> citiesNames() {
-        return null;
+        return cities.stream().map(CityInfo::getName).toList();
     }
 
     /**
@@ -47,7 +63,33 @@ public class TravelService {
      * @throws IllegalArgumentException if source or destination city doesn't exist.
      */
     public int getDistance(String srcCityName, String destCityName) {
-        return 0;
+        CityInfo firstCity = cities.stream()
+                .filter(cityInfo -> srcCityName.equals(cityInfo.getName()))
+                .findAny()
+                .orElseThrow(IllegalArgumentException::new);
+
+        CityInfo secondCity = cities.stream()
+                .filter(cityInfo -> destCityName.equals(cityInfo.getName()))
+                .findAny()
+                .orElseThrow(IllegalArgumentException::new);
+
+        double cl1 = Math.cos(firstCity.getPosition().getLatitude());
+        double sl1 = Math.sin(firstCity.getPosition().getLatitude());
+
+        double cl2 = Math.cos(secondCity.getPosition().getLatitude());
+        double sl2 = Math.sin(secondCity.getPosition().getLatitude());
+        double delta = firstCity.getPosition().getLongitude() - secondCity.getPosition().getLongitude() ;
+        double cdelta = Math.cos(delta);
+        double sdelta = Math.sin(delta);
+
+        // вычисления длины большого круга
+        double y = Math.sqrt( Math.pow(cl2 * sdelta,2) + Math.pow(cl1 * sl2 - sl1 * cl2 * cdelta,2));
+        double x = sl1 * sl2 + cl1 * cl2 * cdelta;
+
+        double ad = Math.atan2(y, x);
+        double dist = ad * earthRadius/1000.0;
+
+        return (int)Math.ceil(dist);
     }
 
     /**
@@ -58,6 +100,6 @@ public class TravelService {
      * @throws IllegalArgumentException if city with cityName city doesn't exist.
      */
     public List<String> getCitiesNear(String cityName, int radius) {
-        return null;
+        return cities.stream().filter(f -> ((this.getDistance(cityName, f.getName()) <= radius) && (!f.getName().equals(cityName)))).map(CityInfo::getName).toList();
     }
 }
