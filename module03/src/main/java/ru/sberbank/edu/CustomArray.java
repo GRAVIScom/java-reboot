@@ -28,7 +28,7 @@ public interface CustomArray<T> {
      *
      * @throws IllegalArgumentException if parameter items is null
      */
-    boolean addAll(Collection<T> items);
+    Object[] addAll(Collection<T> items);
 
     /**
      * Add items to current place in array.
