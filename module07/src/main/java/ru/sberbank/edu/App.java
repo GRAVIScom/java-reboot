@@ -8,6 +8,8 @@ public class App
 {
     public static void main( String[] args )
     {
-        System.out.println( "Hello World!" );
+        WeatherCache weatherCache = new WeatherCache(new WeatherProvider());
+        WeatherInfo weatherInfo1 = weatherCache.getWeatherInfo("Moscow");
+        System.out.println(weatherInfo1.getDescription());
     }
 }
