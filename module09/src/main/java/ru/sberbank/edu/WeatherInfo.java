@@ -1,10 +1,15 @@
 package ru.sberbank.edu;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 /**
  * Weather info.
  */
+@Getter
+@Setter
 public class WeatherInfo {
 
     private String city;

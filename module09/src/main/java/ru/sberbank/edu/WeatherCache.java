@@ -1,21 +1,24 @@
 package ru.sberbank.edu;
 
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Weather cache.
  */
+@Getter
+@Component
 public class WeatherCache {
 
     private final Map<String, WeatherInfo> cache = new HashMap<>();
-    private WeatherProvider weatherProvider;
 
-    /**
-     * Default constructor.
-     */
-    public WeatherCache() {
-    }
+    @Autowired
+    WeatherProvider weatherProvider;
 
     /**
      * Get ACTUAL weather info for current city or null if current city not found.
@@ -26,15 +29,20 @@ public class WeatherCache {
      * @param city - city
      * @return actual weather info
      */
-    public WeatherInfo getWeatherInfo(String city) {
-        // should be implemented
-        return null;
+    public synchronized WeatherInfo getWeatherInfo(String city) {
+        WeatherInfo info = cache.get(city);
+        if (info == null || info.getExpiryTime().isBefore(LocalDateTime.now())) {
+            info = weatherProvider.get(city);
+            info.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+            cache.put(city, info);
+        }
+        return info;
     }
 
     /**
      * Remove weather info from cache.
      **/
-    public void removeWeatherInfo(String city) {
-        // should be implemented
+    public synchronized void removeWeatherInfo(String city) {
+        cache.remove(city);
     }
 }
